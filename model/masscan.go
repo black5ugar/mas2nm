@@ -3,12 +3,10 @@ package model
 import (
 	"encoding/json"
 	"fmt"
-	"io/fs"
 	"io/ioutil"
 	"log"
 	"mas2nm/lib"
 	"os/exec"
-	"path/filepath"
 )
 
 type Masscan struct {
@@ -64,37 +62,19 @@ func NewMasscan() Masscan {
 
 // 读取 Masscan 的扫描结果
 // path 为 Masscan 扫描结果的目录
-func GetMasscanResult(dir string) ([]MasscanResult, error) {
+func GetMasscanResult() ([]MasscanResult, error) {
 
 	var results []MasscanResult
 
-	// 遍历扫描结果目录
-	err := filepath.Walk(dir, func(path string, fi fs.FileInfo, err error) error {
-
-		if !fi.IsDir() {
-
-			// 如果文件为空
-			// 说明本组扫描的ip没有端口开放
-			// 跳过对该文件的处理
-			if fi.Size() == 0 {
-				return nil
-			} else {
-				var result []MasscanResult
-				content, err := ioutil.ReadFile(path)
-				if err != nil {
-					return err
-				}
-				err = json.Unmarshal(content, &result)
-				if err != nil {
-					return err
-				}
-				results = append(results, result...)
-			}
-		}
-		return nil
-	})
+	var result []MasscanResult
+	content, err := ioutil.ReadFile("mas-output.txt")
 	if err != nil {
-		return results, err
+		return nil, err
 	}
+	err = json.Unmarshal(content, &result)
+	if err != nil {
+		return nil, err
+	}
+	results = append(results, result...)
 	return results, nil
 }
